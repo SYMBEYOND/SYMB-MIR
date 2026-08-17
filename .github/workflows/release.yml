@@ -1,0 +1,40 @@
+name: Build SYMB-MIR
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'   # builds the .app / .dmg
+          - platform: 'windows-latest' # builds the .exe / .msi
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: install frontend dependencies
+        run: npm install
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: symb-mir-v__VERSION__
+          releaseName: 'SYMB-MIR v__VERSION__'
+          releaseBody: 'Download the .dmg (Mac) or .msi/.exe (Windows) below. No install steps beyond that — no Python, no Terminal, no port.'
+          releaseDraft: true
+          prerelease: false

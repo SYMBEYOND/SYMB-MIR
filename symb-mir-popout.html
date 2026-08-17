@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYMB-MIR · Popout</title>
+<style>
+  :root{
+    --bg:#161826; --surface:#232532; --text:#e9e9ed; --accent:#9184d9;
+    --n900:#292b31; --n800:#3f424d; --n700:#595d6c; --n600:#75798c;
+    --n400:#b2b6ca; --n300:#cfd3e5; --n100:#f3f5fe;
+    --a100:#f5f4ff; --a200:#e7e5fe; --a300:#d2cefd;
+    --divider:rgba(233,233,237,.16);
+    --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --r:8px;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden;
+       display:flex;flex-direction:column}
+  :focus{outline:none}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  ::selection{background:rgba(145,132,217,.3)}
+
+  /* title bar */
+  #bar{flex:none;display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--n900);
+       user-select:none}
+  #bar .brand{font-weight:500;font-size:11px;letter-spacing:.16em;color:var(--accent);white-space:nowrap}
+  #bar .mode{font-weight:500;font-size:11.5px;white-space:nowrap;color:rgba(233,233,237,.82)}
+  #bar .note{font:400 10px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.34);white-space:nowrap}
+  #bar .right{margin-left:auto;display:flex;align-items:center;gap:9px}
+  #pinLabel{font-weight:500;font-size:10px;letter-spacing:.1em;white-space:nowrap;color:rgba(233,233,237,.45)}
+  #pinLabel.on{color:var(--accent)}
+  #pin{position:relative;width:36px;height:20px;flex:none;padding:0;cursor:pointer;border-radius:99px;
+       border:1px solid var(--divider);background:transparent}
+  #pin.on{border-color:var(--accent);background:rgba(145,132,217,.26)}
+  #pin span{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+            background:var(--n600);transition:left .16s ease}
+  #pin.on span{left:18px;background:var(--accent)}
+
+  /* buttons */
+  .cbtn{min-height:28px;padding:6px 11px;border-radius:99px;cursor:pointer;white-space:nowrap;
+        font-family:var(--font);font-weight:500;font-size:11.5px;line-height:1;
+        border:1px solid var(--divider);background:transparent;color:rgba(233,233,237,.78)}
+  .cbtn:hover{background:rgba(233,233,237,.08);border-color:rgba(233,233,237,.34)}
+  .cbtn:active{background:rgba(233,233,237,.15)}
+  .cbtn.on{color:var(--accent);border-color:var(--accent);background:rgba(145,132,217,.14)}
+  .cbtn.on:hover{background:rgba(145,132,217,.24)}
+  .num{width:60px;height:26px;padding:3px 8px;text-align:center;border-radius:99px;
+       font:500 12px/1 ui-monospace,Menlo,monospace;color:var(--a200);
+       background:var(--bg);border:1px solid var(--divider)}
+  .num:focus-visible{border-color:var(--accent);outline:none}
+
+  /* prompt dock — TOP */
+  #dock{flex:none;display:flex;flex-direction:column;height:190px;background:var(--n900)}
+  #dock.off{display:none}
+  #dockBody{position:relative;flex:1;min-height:0;overflow:hidden;
+            -webkit-mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 86%,transparent);
+            mask-image:linear-gradient(to bottom,transparent,#000 14%,#000 86%,transparent)}
+  #scroll{padding:0 34px;will-change:transform}
+  #scroll p{margin:0 0 .55em;font-weight:500;font-size:30px;line-height:1.4;letter-spacing:-.02em;
+            text-wrap:pretty;color:rgba(243,245,254,.94)}
+  #scroll p.em{color:var(--a200)}
+  #readline{position:absolute;left:0;right:0;top:50%;display:flex;align-items:center;pointer-events:none}
+  #readline s{width:22px;height:2px;flex:none;background:var(--accent)}
+  #readline i{flex:1;height:1px;background:linear-gradient(to right,rgba(145,132,217,.4),transparent 42%,transparent 58%,rgba(145,132,217,.4))}
+  #sbar{position:absolute;right:5px;top:6px;bottom:6px;width:4px;border-radius:2px;
+       background:rgba(233,233,237,.08);cursor:pointer}
+  #sbar i{position:absolute;left:0;right:0;top:0;height:20%;border-radius:2px;
+         background:rgba(145,132,217,.55);transition:background .12s ease;cursor:grab}
+  #sbar i:active{cursor:grabbing}
+  #dockBody:hover #sbar i{background:rgba(145,132,217,.85)}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:118px;height:2px;background:var(--n800);
+                    border-radius:2px;outline:none;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;
+                    background:var(--accent);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radius:50%;background:var(--accent)}
+  input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+  #dockCtl{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:7px 10px;background:var(--bg)}
+  #dockCtl .grow{margin-left:auto;display:flex;align-items:center;gap:7px}
+  .lbl{font-weight:500;font-size:10px;letter-spacing:.14em;color:rgba(233,233,237,.45)}
+  #counter,#spw{font:400 10.5px/1 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.4);white-space:nowrap}
+  #grip{flex:none;height:10px;cursor:ns-resize;display:grid;place-items:center}
+  #grip span{width:40px;height:2px;border-radius:2px;background:var(--n700)}
+  .vr{width:1px;height:18px;background:var(--divider);margin:0 3px}
+
+  /* camera stage — BOTTOM */
+  #stage{position:relative;flex:1;min-height:0;display:flex;gap:1px;background:var(--n800)}
+  .view{position:relative;flex:1 1 0;min-width:0;overflow:hidden;background:var(--n900)}
+  .view.hide{flex:0 0 0px}
+  .view video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  #mirrorView video{transform:scaleX(-1)}
+  .chip{position:absolute;left:12px;top:12px;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+  .chip .tag{padding:3px 9px;border-radius:99px;font-weight:500;font-size:10px;letter-spacing:.12em;
+             line-height:1.5;background:rgba(41,43,49,.74);color:var(--n300)}
+  #realityView .chip .tag{color:var(--a200)}
+  #camOff{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+          gap:10px;background:var(--n900)}
+  #camOff.off{display:none}
+  #camOff p{margin:0;font-size:12.5px;color:var(--n400);text-align:center;max-width:440px}
+  #camOff code{font:400 11.5px/1.7 ui-monospace,Menlo,monospace;color:var(--a300);
+               display:block;margin-top:6px;padding:8px 12px;border-radius:var(--r);
+               background:rgba(66,58,106,.5);user-select:all}
+  #camWhy{font:400 11px/1.6 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.4);text-align:center}
+
+  /* control dock */
+  #ctl{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 10px;background:var(--n900)}
+  #keys{margin-left:auto;font:400 10px/1.6 ui-monospace,Menlo,monospace;color:rgba(233,233,237,.3);white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <span class="brand">SYMB-MIR</span>
+  <span class="mode" id="modeLabel">Double View</span>
+  <span class="note">local camera · no upload</span>
+  <span class="right">
+    <span id="pinLabel" class="on">KEEP FRONT</span>
+    <button id="pin" class="on" title="Keep this window above other windows"><span></span></button>
+  </span>
+</div>
+
+<!-- PROMPT — top, closest to your lens -->
+<div id="dock">
+  <div id="dockBody">
+    <div id="scroll" contenteditable="true" spellcheck="false"></div>
+    <div id="readline"><s></s><i></i><s></s></div>
+    <div id="sbar"><i></i></div>
+  </div>
+  <div id="dockCtl">
+    <button class="cbtn" id="runBtn" style="min-width:96px">▶ SCROLL</button>
+    <button class="cbtn" id="topBtn" style="min-width:32px" title="Back to top">↑</button>
+    <button class="cbtn" id="backBtn" style="min-width:32px" title="Undo — back to where you were">—</button>
+    <span class="grow">
+      <span class="lbl">SPEED</span>
+      <input type="range" id="wpmRange" min="40" max="260" step="5" value="140">
+      <span id="spw">140 wpm</span>
+      <span class="vr"></span>
+      <span class="lbl">SIZE</span>
+      <button class="cbtn" id="smallBtn" style="min-width:28px;min-height:26px;padding:0">A−</button>
+      <button class="cbtn" id="bigBtn" style="min-width:28px;min-height:26px;padding:0">A+</button>
+    </span>
+  </div>
+  <div id="grip" title="Drag to resize the prompt"><span></span></div>
+</div>
+
+<!-- CAMERA — bottom -->
+<div id="stage">
+  <div class="view" id="mirrorView">
+    <video autoplay muted playsinline></video>
+    <div class="chip"><span class="tag">MIRROR — what you're used to</span></div>
+  </div>
+  <div class="view" id="realityView">
+    <video autoplay muted playsinline></video>
+    <div class="chip"><span class="tag">REALITY — what they see</span></div>
+  </div>
+  <div id="camOff">
+    <p id="camMsg">Launching local camera…</p>
+    <div id="camWhy"></div>
+    <button class="cbtn" id="camBtn">Grant camera access</button>
+  </div>
+</div>
+
+<div id="ctl">
+  <button class="cbtn" data-mode="mirror">Mirror</button>
+  <button class="cbtn" data-mode="reality">Reality</button>
+  <button class="cbtn on" data-mode="double">Double</button>
+  <span class="vr"></span>
+  <button class="cbtn" id="fitBtn" title="Fit letterboxes, Fill crops">Fit</button>
+  <button class="cbtn on" id="promptBtn" title="Show the prompt dock">Prompt</button>
+  <button class="cbtn" id="snapBtn" title="Save a PNG of the stage">Snapshot</button>
+  <span id="keys">1·2·3 view · F fit · SPACE scroll · ↑↓ speed · S snapshot</span>
+</div>
+
+<script>
+'use strict';
+
+/* ── script lines (from SYMB-MIR/teleprompter.html · VIDEO 004) ───────── */
+const LINES = [
+  { t: "Every few months, a new model drops.", e: false },
+  { t: "And everyone scrambles.", e: false },
+  { t: "I don't scramble.", e: true },
+  { t: "I started building this framework in 2010.", e: false },
+  { t: "Not a product. Not an app.", e: false },
+  { t: "A methodology.", e: true },
+  { t: "A way of working with AI that assumed one thing from the beginning:", e: false },
+  { t: "The model is not the point.", e: true },
+  { t: "The relationship is the point.", e: true },
+  { t: "Thin wrappers don't survive.", e: false },
+  { t: "Prompt tricks don't survive.", e: false },
+  { t: "Tools built on raw capability, without a philosophy underneath, don't survive.", e: true },
+  { t: "The framework doesn't compete with the model.", e: false },
+  { t: "It rides it.", e: true },
+  { t: "So when the next release drops — and there will be a next one —", e: false },
+  { t: "Ask yourself one question:", e: false },
+  { t: "Is what you're building built on the model, or built on the relationship?", e: true }
+];
+
+const $ = s => document.querySelector(s);
+const state = {
+  mode: 'double', fill: true, prompt: true, pinned: true,
+  running: false, wpm: 140, size: 30, dockH: 190
+};
+let stream = null, dz = null, offset = 0, lastT = 0, prevOffset = 0;
+
+const mirrorVid  = $('#mirrorView video');
+const realityVid = $('#realityView video');
+
+/* ── camera ───────────────────────────────────────────────────────────── */
+async function startCam() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280 }, audio: false });
+    mirrorVid.srcObject = stream;
+    realityVid.srcObject = stream;
+    $('#camOff').classList.add('off');
+  } catch (err) {
+    $('#camOff').classList.remove('off');
+    const name = (err && err.name) || 'Error';
+    const file = location.protocol === 'file:';
+    let msg, why;
+    if (file || !window.isSecureContext) {
+      msg = 'Browsers only hand over a camera on a secure origin — and a double-clicked file is not one.';
+      why = 'Run one line in the folder holding this file, then open the address it prints:';
+    } else if (name === 'NotAllowedError') {
+      msg = 'Camera permission was denied for this page.';
+      why = 'Click the camera icon in the address bar, allow it, then press the button below.';
+    } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+      msg = 'No camera found on this machine.';
+      why = 'Plug one in, or close whatever app is holding it, then retry.';
+    } else if (name === 'NotReadableError' || name === 'TrackStartError') {
+      msg = 'The camera is busy — another app already has it.';
+      why = 'Quit Zoom / Meet / Photo Booth and press the button below.';
+    } else {
+      msg = 'Camera unavailable — ' + name;
+      why = 'Retry, or serve the file over localhost:';
+    }
+    $('#camMsg').textContent = msg;
+    $('#camWhy').innerHTML = why +
+      ((file || !window.isSecureContext || name === 'SecurityError')
+        ? '<code>python3 -m http.server 8000</code><code>http://localhost:8000/symb-mir-popout.html</code>'
+        : '');
+    console.warn('[SYMB-MIR] getUserMedia failed:', name, err);
+  }
+}
+$('#camBtn').addEventListener('click', startCam);
+
+/* ── the perspectives ─────────────────────────────────────────────────── */
+function renderStage() {
+  $('#mirrorView').classList.toggle('hide', state.mode === 'reality');
+  $('#realityView').classList.toggle('hide', state.mode === 'mirror');
+  $('#modeLabel').textContent =
+    state.mode === 'mirror' ? 'Mirror View' : state.mode === 'reality' ? 'Reality View' : 'Double View';
+  document.querySelectorAll('[data-mode]').forEach(b =>
+    b.classList.toggle('on', b.dataset.mode === state.mode));
+
+  const fit = state.fill ? 'cover' : 'contain';
+  mirrorVid.style.objectFit = realityVid.style.objectFit = fit;
+  $('#fitBtn').textContent = state.fill ? 'Fit' : 'Fill';
+}
+
+document.querySelectorAll('[data-mode]').forEach(b =>
+  b.addEventListener('click', () => { state.mode = b.dataset.mode; renderStage(); }));
+$('#fitBtn').addEventListener('click', () => { state.fill = !state.fill; renderStage(); });
+
+/* ── prompt — one continuous scroll, paced in words per minute ─────────── */
+function buildScript() {
+  $('#scroll').innerHTML = LINES.map(l =>
+    '<p' + (l.e ? ' class="em"' : '') + '>' + l.t + '</p>').join('');
+}
+
+function renderPrompt() {
+  $('#scroll').style.fontSize = state.size + 'px';
+  document.querySelectorAll('#scroll p').forEach(p => { p.style.fontSize = state.size + 'px'; });
+  $('#spw').textContent = state.wpm + ' wpm';
+  $('#wpmRange').value = state.wpm;
+  $('#runBtn').textContent = state.running ? '■ PAUSE' : '▶ SCROLL';
+  $('#runBtn').classList.toggle('on', state.running);
+  $('#dock').classList.toggle('off', !state.prompt);
+  $('#dock').style.height = state.dockH + 'px';
+  $('#promptBtn').classList.toggle('on', state.prompt);
+  // keep the first line parked on the reading line before you start
+  $('#scroll').style.paddingTop = Math.round($('#dockBody').clientHeight * 0.42) + 'px';
+  $('#scroll').style.paddingBottom = Math.round($('#dockBody').clientHeight * 0.62) + 'px';
+  updateScrollbar();
+}
+
+function tick(now) {
+  const dt = lastT ? Math.min(0.05, (now - lastT) / 1000) : 0;
+  lastT = now;
+  if (state.running) {
+    // px/sec derived from reading pace: wpm ÷ 60 words per second, ~9 words a line
+    offset += (state.wpm / 60) * (state.size * 1.4 / 9) * dt * 3.2;
+    const max = Math.max(0, $('#scroll').scrollHeight - $('#dockBody').clientHeight * 0.5);
+    if (offset >= max) { offset = max; stopRun(); }
+    $('#scroll').style.transform = 'translateY(' + -offset + 'px)';
+    updateScrollbar();
+  }
+  requestAnimationFrame(tick);
+}
+
+function startRun() { state.running = true; renderPrompt(); }
+function stopRun()  { state.running = false; renderPrompt(); }
+function toggleRun(){ state.running ? stopRun() : startRun(); }
+function rewind() {
+  if (offset > 0) prevOffset = offset;
+  offset = 0;
+  $('#scroll').style.transform = 'translateY(0px)';
+  stopRun();
+  updateScrollbar();
+}
+function unrewind() {
+  offset = prevOffset;
+  $('#scroll').style.transform = 'translateY(' + -offset + 'px)';
+  updateScrollbar();
+}
+
+function scrollMax() {
+  return Math.max(0, $('#scroll').scrollHeight - $('#dockBody').clientHeight * 0.5);
+}
+function updateScrollbar() {
+  const total = $('#scroll').scrollHeight;
+  const bodyH = $('#dockBody').clientHeight;
+  const trackH = bodyH - 12;
+  if (total <= 0 || trackH <= 0) return;
+  const max = Math.max(1, scrollMax());
+  const ratio = Math.min(1, Math.max(0, offset / max));
+  const thumbH = Math.max(20, Math.min(trackH, trackH * (bodyH / total)));
+  $('#sbar i').style.height = thumbH + 'px';
+  $('#sbar i').style.top = (ratio * (trackH - thumbH)) + 'px';
+}
+
+/* mouse wheel over the prompt always scrolls it manually, and always wins over autoscroll */
+$('#dockBody').addEventListener('wheel', e => {
+  e.preventDefault();
+  if (state.running) stopRun();
+  offset = Math.min(scrollMax(), Math.max(0, offset + e.deltaY));
+  $('#scroll').style.transform = 'translateY(' + -offset + 'px)';
+  updateScrollbar();
+}, { passive: false });
+
+/* grabbable scrollbar — drag the thumb, or click the track to jump */
+let sbDrag = null;
+function setOffset(v) {
+  offset = Math.min(scrollMax(), Math.max(0, v));
+  $('#scroll').style.transform = 'translateY(' + -offset + 'px)';
+  updateScrollbar();
+}
+$('#sbar').addEventListener('mousedown', e => {
+  if (state.running) stopRun();
+  const track = $('#sbar').getBoundingClientRect();
+  const thumbH = $('#sbar i').offsetHeight;
+  const trackH = track.height;
+  const max = scrollMax();
+  if (e.target === $('#sbar i')) {
+    sbDrag = { startY: e.clientY, startOffset: offset, trackH, thumbH, max };
+  } else {
+    const ratio = Math.min(1, Math.max(0, (e.clientY - track.top - thumbH / 2) / Math.max(1, trackH - thumbH)));
+    setOffset(ratio * max);
+    sbDrag = { startY: e.clientY, startOffset: offset, trackH, thumbH, max };
+  }
+  e.preventDefault();
+});
+document.addEventListener('mousemove', e => {
+  if (!sbDrag) return;
+  const scrollable = Math.max(1, sbDrag.trackH - sbDrag.thumbH);
+  const deltaOffset = ((e.clientY - sbDrag.startY) / scrollable) * sbDrag.max;
+  setOffset(sbDrag.startOffset + deltaOffset);
+});
+document.addEventListener('mouseup', () => { sbDrag = null; });
+
+$('#runBtn').addEventListener('click', toggleRun);
+$('#topBtn').addEventListener('click', rewind);
+$('#backBtn').addEventListener('click', unrewind);
+$('#promptBtn').addEventListener('click', () => { state.prompt = !state.prompt; renderPrompt(); });
+$('#smallBtn').addEventListener('click', () => { state.size = Math.max(16, state.size - 3); renderPrompt(); });
+$('#bigBtn').addEventListener('click', () => { state.size = Math.min(72, state.size + 3); renderPrompt(); });
+$('#wpmRange').addEventListener('input', e => { state.wpm = +e.target.value; renderPrompt(); });
+
+/* dock resize — grip sits on the dock's lower edge */
+$('#grip').addEventListener('mousedown', e => {
+  dz = { y: e.clientY, h: state.dockH }; e.preventDefault();
+});
+document.addEventListener('mousemove', e => {
+  if (!dz) return;
+  state.dockH = Math.max(112, Math.min(window.innerHeight - 180, dz.h + (e.clientY - dz.y)));
+  renderPrompt();
+});
+document.addEventListener('mouseup', () => { dz = null; });
+
+/* ── keep front ───────────────────────────────────────────────────────── */
+$('#pin').addEventListener('click', async () => {
+  state.pinned = !state.pinned;
+  $('#pin').classList.toggle('on', state.pinned);
+  $('#pinLabel').classList.toggle('on', state.pinned);
+  $('#pinLabel').textContent = state.pinned ? 'KEEP FRONT' : 'NORMAL';
+  // Tauri/Electron shell: real always-on-top.
+  try {
+    if (window.__TAURI__ && window.__TAURI__.window) {
+      await window.__TAURI__.window.appWindow.setAlwaysOnTop(state.pinned);
+    }
+  } catch (err) { console.warn('always-on-top unavailable in the browser:', err); }
+});
+
+/* ── snapshot ─────────────────────────────────────────────────────────── */
+$('#snapBtn').addEventListener('click', () => {
+  const btn = $('#snapBtn');
+  const src = state.mode === 'mirror' ? mirrorVid : realityVid;
+  if (!src.videoWidth) { btn.textContent = 'No frame'; return reset(); }
+  const double = state.mode === 'double';
+  const vw = src.videoWidth, vh = src.videoHeight;
+  const c = document.createElement('canvas');
+  c.width = double ? vw * 2 : vw; c.height = vh;
+  const g = c.getContext('2d');
+  g.fillStyle = '#161826'; g.fillRect(0, 0, c.width, c.height);
+  const flipped = (el, x) => { g.save(); g.translate(x + vw, 0); g.scale(-1, 1); g.drawImage(el, 0, 0, vw, vh); g.restore(); };
+  if (double) { flipped(mirrorVid, 0); g.drawImage(realityVid, vw, 0, vw, vh); }
+  else if (state.mode === 'mirror') flipped(mirrorVid, 0);
+  else g.drawImage(realityVid, 0, 0, vw, vh);
+  const a = document.createElement('a');
+  a.href = c.toDataURL('image/png');
+  a.download = 'SYMB-MIR_snapshot_' + new Date().toISOString().replace(/[:.]/g, '-') + '.png';
+  a.click();
+  btn.textContent = 'Saved';
+  function reset() { setTimeout(() => { btn.textContent = 'Snapshot'; }, 1600); }
+  reset();
+});
+
+/* ── keys ─────────────────────────────────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName) || e.target.isContentEditable) return;
+  const k = e.key.toLowerCase();
+  if (e.code === 'Space') { e.preventDefault(); toggleRun(); return; }
+  if (e.key === 'ArrowUp')   { e.preventDefault(); state.wpm = Math.min(260, state.wpm + 5); renderPrompt(); return; }
+  if (e.key === 'ArrowDown') { e.preventDefault(); state.wpm = Math.max(40,  state.wpm - 5); renderPrompt(); return; }
+  if (k === '1') { state.mode = 'mirror';  renderStage(); }
+  else if (k === '2') { state.mode = 'reality'; renderStage(); }
+  else if (k === '3') { state.mode = 'double';  renderStage(); }
+  else if (k === 'f') { state.fill = !state.fill; renderStage(); }
+  else if (k === 's') { $('#snapBtn').click(); }
+  else if (k === 'r') { rewind(); }
+});
+
+renderStage();
+buildScript();
+renderPrompt();
+requestAnimationFrame(tick);
+window.addEventListener('resize', renderPrompt);
+startCam();
+</script>
+</body>
+</html>
