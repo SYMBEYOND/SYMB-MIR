@@ -56,6 +56,12 @@ npm run tauri icon path/to/your-logo.png
 That overwrites everything in `src-tauri/icons/` with the correct
 sizes automatically — no need to touch `tauri.conf.json` again.
 
+## Using an AI assistant?
+
+Copy the contents of [`REPO_BOOT.md`](https://raw.githubusercontent.com/SYMBEYOND/SYMB-MIR/main/REPO_BOOT.md) into ChatGPT, Claude, Gemini, or your LLM of choice.
+
+That file gives the AI a compact orientation to what this repository is, what it does, what files matter, and how to continue safely.
+
 ## Notes
 - `symb-mir-popout.html` lives in one place now: `web/symb-mir-popout.html`.
   That's the single source of truth — edit it there, nothing else needs
