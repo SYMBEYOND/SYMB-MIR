@@ -62,19 +62,11 @@ Copy the contents of [`REPO_BOOT.md`](https://raw.githubusercontent.com/SYMBEYON
 
 That file gives the AI a compact orientation to what this repository is, what it does, what files matter, and how to continue safely.
 
-## Notes
-- `symb-mir-popout.html` lives in one place now: `web/symb-mir-popout.html`.
-  That's the single source of truth — edit it there, nothing else needs
-  updating in sync.
-- `distDir` in `tauri.conf.json` points at `web/` so the Tauri build has
-  a clean folder with nothing but the app in it (Tauri refuses to bundle
-  a distDir that also contains `node_modules` or `src-tauri`).
-- `start-symb-mir.command` (Mac) and `start-symb-mir.bat` (Windows) are
-  included here too, updated to open `web/symb-mir-popout.html`. Handy
-  if you want to test without building — double-click, no Rust needed,
-  same as before.
-- macOS camera permission text (`NSCameraUsageDescription`) isn't yet
-  wired into the CI build — if macOS silently denies the camera in
-  the built app with no permission prompt, that's the reason. Flag it
-  and I'll add the Info.plist step to the workflow.
+ReBoot helps answer:
 
+* What is this repo?
+* What files matter?
+* What commands should be run before continuing?
+* How does a human or AI collaborator safely resume work?
+
+ReBoot does not replace good documentation, tests, or version control. It gives the repo a durable boot surface.
