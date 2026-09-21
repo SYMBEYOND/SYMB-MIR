@@ -70,3 +70,12 @@ ReBoot helps answer:
 * How does a human or AI collaborator safely resume work?
 
 ReBoot does not replace good documentation, tests, or version control. It gives the repo a durable boot surface.
+
+## What This Repository Contains
+
+| File / Folder | Purpose |
+|---|---|
+| `symb-mir-popout.html` | The camera/prompt tool this app wraps |
+| `src-tauri/` | The Rust native shell (Tauri) |
+| `.github/workflows/release.yml` | Cloud build for Mac and Windows releases |
+| `start-symb-mir.command` / `.bat` | Local launch scripts, Mac and Windows |
