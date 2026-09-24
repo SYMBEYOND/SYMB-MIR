@@ -39,14 +39,14 @@ Engine: `1.0.0-rc1`
 Configuration schema: `1`
 Managed-output schema: `1`
 Branch: `main`
-Meaningful source commit: `b2bd48f76187fc68a515d89aeb6c5b5ec9ac889f`
-Working tree dirty: `YES`
+Meaningful source commit: `787dfae09c106541293eb0fd442e2d0aa3fe5faf`
+Working tree dirty: `NO`
 
 ### Human-approved repository context
 
-Purpose: Tauri-wrapped camera/prompt teleprompter app
-Audience: Builders and maintainers
-Status: Under active development
+Purpose: Develop SYMB-MIR, a Tauri-wrapped native camera/prompt teleprompter application for macOS and Windows.
+Audience: Builders, maintainers, release operators, and human or AI collaborators working on the SYMB-MIR desktop application.
+Status: Under active development; package version 0.1.0. Tag-triggered GitHub automation is configured to create draft macOS and Windows releases.
 
 ### Authority and uncertainty
 
@@ -58,17 +58,7 @@ Status: Under active development
 
 ### Approved paths
 
-- PRESENT `README.md` (file): Primary product overview
-- PRESENT `symb-mir-popout.html` (file): Main teleprompter interface
-- PRESENT `src-tauri/src/main.rs` (file): Tauri app entry point
-- PRESENT `package.json` (file): Project metadata
-- PRESENT `.github/workflows/release.yml` (file): Mac/Windows build automation
-- PRESENT `start-symb-mir.command` (file): macOS launcher script
-- PRESENT `start-symb-mir.bat` (file): Windows launcher script
-- PRESENT `src-tauri` (directory): Rust Tauri shell
-- PRESENT `web` (directory): Web UI
-- PRESENT `.github/workflows` (directory): CI/CD automation
-- PRESENT `REPO_BOOT.md` (generated): Stable orientation with auto-generated managed block
+- None approved
 
 <!-- REPO_BOOT:AUTO:END -->
 
