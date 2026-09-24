@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "repository": {
-    "purpose": "Repository state and orientation management",
-    "audience": "Builders, maintainers, and AI collaborators",
-    "status": "Production"
+    "purpose": "Develop SYMB-MIR, a Tauri-wrapped native camera/prompt teleprompter application for macOS and Windows.",
+    "audience": "Builders, maintainers, release operators, and human or AI collaborators working on the SYMB-MIR desktop application.",
+    "status": "Under active development; package version 0.1.0. Tag-triggered GitHub automation is configured to create draft macOS and Windows releases."
   },
   "orientation": {
     "important_files": [],
