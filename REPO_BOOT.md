@@ -24,6 +24,14 @@ This file contains a stable human-reviewed section and a managed auto-generated 
 
 **Resume safely:** Pull with safeguards, run ReBoot doctor/check, review the managed block below before pushing.
 
+## ReBoot maintenance note
+
+The repository's release workflow is configured to run on version tags, build on macOS and Windows runners, and create a draft GitHub release. The presence of that workflow does not by itself prove that every release build has succeeded or that produced artifacts have been runtime-validated.
+
+The package metadata reports version `0.1.0` and marks the npm package private.
+
+No paths or commands are human-approved through the current ReBoot configuration. The descriptive paths and commands above are preserved human orientation and must not be treated as authorization by the managed block.
+
 <!-- REPO_BOOT:AUTO:BEGIN -->
 ## Auto-generated repository state
 
